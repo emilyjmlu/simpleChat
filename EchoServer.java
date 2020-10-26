@@ -113,6 +113,7 @@ public class EchoServer extends AbstractServer
    */
   protected void clientConnected(ConnectionToClient client) {
 	  sendToAllClients("Welcome to the server!");
+	  System.out.println(client.toString() + " has connected.");
   }
 
   /**
@@ -123,7 +124,7 @@ public class EchoServer extends AbstractServer
    * @param client the connection with the client.
    */
   synchronized protected void clientDisconnected(ConnectionToClient client) {
-	  sendToAllClients("A client has disconnected.");
+	  sendToAllClients(client.toString() + " has disconnected.");
   }
   
   /**

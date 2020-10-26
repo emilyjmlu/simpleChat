@@ -86,7 +86,27 @@ public class ClientConsole implements ChatIF
       while (true) 
       {
         message = fromConsole.nextLine();
-        client.handleMessageFromClientUI(message);
+     
+        if (message.toString().charAt(0) == '#') { // if the first character of the input is a #
+        	
+        	String command = message.substring(1);
+        	
+        	switch(command) {
+	        	case "quit":
+	        		display("Closing Program.");
+					client.quit();
+					break;
+					
+	        	default:
+	        		display("Not a command.");
+	        		break;
+        	
+        	}
+        	
+        }
+        else { // if the input isn't a command
+        	client.handleMessageFromClientUI(message);
+        }
       }
     } 
     catch (Exception ex) 
