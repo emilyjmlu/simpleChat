@@ -24,6 +24,8 @@ public class EchoServer extends AbstractServer
    */
   final public static int DEFAULT_PORT = 5555;
   
+  ServerConsole serverUI; // for server user
+  
   //Constructors ****************************************************
   
   /**
@@ -34,6 +36,14 @@ public class EchoServer extends AbstractServer
   public EchoServer(int port) 
   {
     super(port);
+    serverUI = new ServerConsole(port); // new server
+    serverUI.accept();
+  }
+  
+  public EchoServer(int port, ServerConsole serverUI) throws IOException {
+	  super(port);
+	  this.serverUI = serverUI; 
+	  listen();
   }
 
   
@@ -48,7 +58,7 @@ public class EchoServer extends AbstractServer
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
   {
-    System.out.println("Message received: " + msg + " from " + client);
+    serverUI.display("Message received: " + msg + " from " + client);
     this.sendToAllClients(msg);
   }
     
@@ -58,8 +68,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStarted()
   {
-    System.out.println
-      ("Server listening for connections on port " + getPort());
+    serverUI.display("Server listening for connections on port " + getPort());
   }
   
   /**
@@ -68,8 +77,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStopped()
   {
-    System.out.println
-      ("Server has stopped listening for connections.");
+    serverUI.display("Server has stopped listening for connections.");
   }
   
   //Class methods ***************************************************
@@ -112,8 +120,7 @@ public class EchoServer extends AbstractServer
    * @param client the connection connected to the client.
    */
   protected void clientConnected(ConnectionToClient client) {
-	  sendToAllClients("Welcome to the server!");
-	  System.out.println(client.toString() + " has connected.");
+	  serverUI.display(client.toString() + " has connected.");
   }
 
   /**
@@ -124,7 +131,7 @@ public class EchoServer extends AbstractServer
    * @param client the connection with the client.
    */
   synchronized protected void clientDisconnected(ConnectionToClient client) {
-	  sendToAllClients(client.toString() + " has disconnected.");
+	  serverUI.display(client.toString() + " has disconnected.");
   }
   
   /**
@@ -136,10 +143,19 @@ public class EchoServer extends AbstractServer
    * @param client the client that raised the exception.
    * @param Throwable the exception thrown.
    */
-  synchronized protected void clientException(
-    ConnectionToClient client, Throwable exception) {
-	  sendToAllClients("A client has disconnected.");
-	  System.out.println("A client has disconnected.");
+  synchronized protected void clientException(ConnectionToClient client, Throwable exception) {
+	  serverUI.display("A client has disconnected.");
+  }
+  
+
+  /**
+   * Hook method called when the server is closed.
+   * The default implementation does nothing. This method may be
+   * overriden by subclasses. When the server is closed while still
+   * listening, serverStopped() will also be called.
+   */
+  protected void serverClosed() {
+	  serverUI.display("Server closed.");
   }
 }
 //End of EchoServer class

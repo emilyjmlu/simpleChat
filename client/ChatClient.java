@@ -98,8 +98,7 @@ public class ChatClient extends AbstractClient
 	 * attempting to reconnect.
 	 */
 	protected void connectionClosed() {
-		clientUI.display("Connection to server was terminated. Closing program.");
-		System.exit(0);
+		clientUI.display("Logging off.");
 	}
 
 	/**
@@ -111,8 +110,10 @@ public class ChatClient extends AbstractClient
 	 *            the exception raised.
 	 */
 	protected void connectionException(Exception exception) {
-		connectionClosed();
-		
+		clientUI.display("Connection to server was terminated.");
+		quit();
 	}
+	
+	
 }
 //End of ChatClient class

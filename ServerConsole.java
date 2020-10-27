@@ -1,26 +1,13 @@
-// This file contains material supporting section 3.7 of the textbook:
-// "Object Oriented Software Engineering" and is issued under the open-source
-// license found at www.lloseng.com 
 
 import java.io.*;
 import java.util.Scanner;
-
 import client.*;
 import common.*;
+import ocsf.server.ConnectionToClient;
 
-/**
- * This class constructs the UI for a chat client.  It implements the
- * chat interface in order to activate the display() method.
- * Warning: Some of the code here is cloned in ServerConsole 
- *
- * @author Fran&ccedil;ois B&eacute;langer
- * @author Dr Timothy C. Lethbridge  
- * @author Dr Robert Lagani&egrave;re
- * @version September 2020
- */
-public class ClientConsole implements ChatIF 
-{
-  //Class variables *************************************************
+public class ServerConsole implements ChatIF {
+
+ //Class variables *************************************************
   
   /**
    * The default port to connect on.
@@ -30,11 +17,9 @@ public class ClientConsole implements ChatIF
   //Instance variables **********************************************
   
   /**
-   * The instance of the client that created this ConsoleChat.
+   * The instance of the server that created this ServerConsole.
    */
-  ChatClient client;
-  
-  
+  EchoServer server;
   
   /**
    * Scanner to read from the console
@@ -47,26 +32,22 @@ public class ClientConsole implements ChatIF
   /**
    * Constructs an instance of the ClientConsole UI.
    *
-   * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String host, int port) 
-  {
+  public ServerConsole(int port) {
     try 
     {
-      client= new ChatClient(host, port, this);
-      
-      
+      server = new EchoServer(port, this);
+      // Create scanner object to read from console
+      fromConsole = new Scanner(System.in); 
     } 
-    catch(IOException exception) 
+    	catch(IOException exception) 
     {
-      System.out.println("Error: Can't setup connection!"
-                + " Terminating client.");
+      display("ERROR - Could not listen for clients!");
       System.exit(1);
     }
     
-    // Create scanner object to read from console
-    fromConsole = new Scanner(System.in); 
+    
   }
 
   
@@ -96,60 +77,60 @@ public class ClientConsole implements ChatIF
             	
     	        	case "quit":
     	        		display("Closing program.");
-    					client.quit(); // close client
+    					server.close(); // kills server
     					break;
     				
-    	        	case "logoff":
-    	        		client.closeConnection(); // closeConnection
+    	        	case "stop":
+    	        		server.stopListening(); // stop listening for new clients
     	        		break;
     	        		
-    	        	case "login":
-    	        		if (client.isConnected()) {
-    	        			display("Error: Already connected to server."); // error message if already connected
-    	        		} else {
-    	        			client = new ChatClient(client.getHost(), client.getPort(), this); // new client
+    	        	case "close":
+    	        		server.stopListening();
+    	        		Thread[] clientThreadList = server.getClientConnections(); // array of all clients
+    	        		for (int i = 0; i < clientThreadList.length; i++) {
+    	        			try {
+    	        				((ConnectionToClient)clientThreadList[i]).close(); // Close the client sockets of the already connected clients
+    	        			}
+    	        			catch(Exception e) {}
     	        		}
     	        		break;
     	        		
-    	        	case "gethost":
-    	        		display(client.getHost());
+    	        	case "getport":
+    	        		display(Integer.toString(server.getPort()));
     	        		break;
     	        		
-    	        	case "getport":
-    	        		display(Integer.toString(client.getPort()));
+    	        	case "start":
+    	        		if (!server.isListening()) {
+    	        			server.listen();
+    	        		} else if (server.isListening()) {
+    	        			display("Error: server is already listening for connections.");
+    	        		}
     	        		break;
     					
     	        	default:
-    	        		display("Not a valid command.");
+    	        		display("Not a command."); // if used # but not a valid command
     	        		break;
-           
+   
         	}
             
-        	
         }
         else if (message.contains(" ")) { // two word input
         	String command = message.split(" ")[0];
         	String para = message.split(" ")[1];
         	
         	switch (command) {
-        	
-        		case "#sethost":
-        			if (client.isConnected()) { // error message if client is already connected
-        				display("Error: Already connected to server.");
-        			} else {
-        				client.setHost(para);
-        			}
-        			break;
         			
         		case "#setport":
-        			if (client.isConnected()) { // error message if client is already connected
-        				display("Error: Already connected to server.");
-        			} else {
-        				client.setPort(Integer.parseInt(para));
-        			}
-        			break;
+        			if (!server.isListening()) {
+	        			server.setPort(Integer.parseInt(para));
+	        			display("new port: " + server.getPort());
+	        		} else if (server.isListening()) {
+	        			display("Error: server is already running.");
+	        		}
+	        		break;
+	        		
         		default: 
-        			display("Not a valid command."); // if used # but not a valid command
+        			display("Not a valid command.");
 	        		break;
         			
         	}
@@ -158,7 +139,8 @@ public class ClientConsole implements ChatIF
         	
         }
         else { // if the input isn't a command
-        	client.handleMessageFromClientUI(message);
+        	display("SERVER MSG> " + message);
+        	server.sendToAllClients("SERVER MSG> " + message);
         }
       }
     } 
@@ -191,7 +173,6 @@ public class ClientConsole implements ChatIF
   public static void main(String[] args) 
   {
 	  
-    String host = "localhost"; // initialize host
     int port = DEFAULT_PORT; // initialize port number to default
     
     try
@@ -203,9 +184,9 @@ public class ClientConsole implements ChatIF
     	System.out.println("Wrong input. Using default port.");
     }
     
-    ClientConsole chat= new ClientConsole(host, port);
-    chat.accept();  //Wait for console data
+    ServerConsole serverChat = new ServerConsole(port);
+    serverChat.accept();  //Wait for console data
   }
 
 }
-//End of ConsoleChat class
+//End of ServerConsole class
