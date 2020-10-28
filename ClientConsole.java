@@ -34,12 +34,12 @@ public class ClientConsole implements ChatIF
    */
   ChatClient client;
   
-  
-  
   /**
    * Scanner to read from the console
    */
   Scanner fromConsole; 
+  
+  String loginID;
 
   
   //Constructors ****************************************************
@@ -50,11 +50,12 @@ public class ClientConsole implements ChatIF
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String host, int port) 
+  public ClientConsole(String loginID, String host, int port) 
   {
     try 
     {
-      client= new ChatClient(host, port, this);
+      client= new ChatClient(loginID, host, port, this);
+      client.sendToServer("#loginID " + loginID);
       
       
     } 
@@ -103,14 +104,6 @@ public class ClientConsole implements ChatIF
     	        		client.closeConnection(); // closeConnection
     	        		break;
     	        		
-    	        	case "login":
-    	        		if (client.isConnected()) {
-    	        			display("Error: Already connected to server."); // error message if already connected
-    	        		} else {
-    	        			client = new ChatClient(client.getHost(), client.getPort(), this); // new client
-    	        		}
-    	        		break;
-    	        		
     	        	case "gethost":
     	        		display(client.getHost());
     	        		break;
@@ -118,6 +111,9 @@ public class ClientConsole implements ChatIF
     	        	case "getport":
     	        		display(Integer.toString(client.getPort()));
     	        		break;
+    	        		
+    	        	case "login":
+    	        		display("Error: missing login ID.");
     					
     	        	default:
     	        		display("Not a valid command.");
@@ -148,6 +144,18 @@ public class ClientConsole implements ChatIF
         				client.setPort(Integer.parseInt(para));
         			}
         			break;
+        			
+	        	case "#login":
+	        		if (client.isConnected()) {
+	        			display("Error: Already connected to server."); 
+	        		} else {
+	        			client.setLoginID(message.split(" ")[1]);
+	        		}
+	        		client.openConnection();
+	        		client.sendToServer("#loginID " + client.getLoginID());
+	        		client.setLoginID(message.split(" ")[1]);
+	        		break;
+	        		
         		default: 
         			display("Not a valid command."); // if used # but not a valid command
 	        		break;
@@ -193,17 +201,28 @@ public class ClientConsole implements ChatIF
 	  
     String host = "localhost"; // initialize host
     int port = DEFAULT_PORT; // initialize port number to default
+    String loginID = null;
+
+    try
+    {
+    	loginID = (String)args[0]; 
+    }
+    catch(Throwable t) {
+    	System.out.println("Error: No login ID. Terminating client.");
+	  	  System.exit(1);
+    }
     
     try
     {
-    	port = Integer.parseInt(args[0]); //get port from command line
-    }	
+    	port = Integer.parseInt(args[1]); //get port from command line
+    }
     catch(Throwable t)
     {
     	System.out.println("Wrong input. Using default port.");
     }
     
-    ClientConsole chat= new ClientConsole(host, port);
+    ClientConsole chat= new ClientConsole(loginID, host, port);
+    
     chat.accept();  //Wait for console data
   }
 

@@ -58,8 +58,26 @@ public class EchoServer extends AbstractServer
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
   {
-    serverUI.display("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+	  String message = msg.toString();
+	  
+	  if (message.startsWith("#login") && (client.getInfo("loginID") == null)) { // if message starts with login and loginID is null (meaning new client)
+		  client.setInfo("loginID", message.split(" ")[1]);
+		  serverUI.display(client.getInfo("loginID") + " logged on.");
+	  }
+	  else if (message.startsWith("#login")) { // if client disconnected
+		  try {
+			  client.sendToClient("ERROR - already connected.");
+			  close();
+		  }
+		  catch (Exception e) {System.out.println("thrown");}
+		  
+	  }
+	  else { // doesn't start with login
+		  	serverUI.display("Message received: " + msg + " from " + client.getInfo("loginID"));
+		    this.sendToAllClients(client.getInfo("loginID") + ": " + msg);
+	  }
+	  
+    
   }
     
   /**
@@ -120,7 +138,7 @@ public class EchoServer extends AbstractServer
    * @param client the connection connected to the client.
    */
   protected void clientConnected(ConnectionToClient client) {
-	  serverUI.display(client.toString() + " has connected.");
+	  serverUI.display("A client is connecting.");
   }
 
   /**
@@ -131,7 +149,7 @@ public class EchoServer extends AbstractServer
    * @param client the connection with the client.
    */
   synchronized protected void clientDisconnected(ConnectionToClient client) {
-	  serverUI.display(client.toString() + " has disconnected.");
+	  serverUI.display(client.getInfo("loginID") + " has disconnected.");
   }
   
   /**
@@ -144,7 +162,7 @@ public class EchoServer extends AbstractServer
    * @param Throwable the exception thrown.
    */
   synchronized protected void clientException(ConnectionToClient client, Throwable exception) {
-	  serverUI.display("A client has disconnected.");
+	  serverUI.display(client.getInfo("loginID") + " has disconnected.");
   }
   
 
