@@ -59,10 +59,12 @@ public class EchoServer extends AbstractServer
     (Object msg, ConnectionToClient client)
   {
 	  String message = msg.toString();
+	  serverUI.display("Message received: " + msg  + " from " + client.getInfo("loginID")); // msg received including logged on
 	  
 	  if (message.startsWith("#login") && (client.getInfo("loginID") == null)) { // if message starts with login and loginID is null (meaning new client)
 		  client.setInfo("loginID", message.split(" ")[1]);
-		  serverUI.display(client.getInfo("loginID") + " logged on.");
+		  System.out.println(client.getInfo("loginID") + " logged on.");
+		  this.sendToAllClients(client.getInfo("loginID") + " has logged on.");
 	  }
 	  else if (message.startsWith("#login")) { // if client disconnected
 		  try {
@@ -73,7 +75,7 @@ public class EchoServer extends AbstractServer
 		  
 	  }
 	  else { // doesn't start with login
-		  	serverUI.display("Message received: " + msg + " from " + client.getInfo("loginID"));
+		  	
 		    this.sendToAllClients(client.getInfo("loginID") + ": " + msg);
 	  }
 	  
@@ -86,7 +88,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStarted()
   {
-    serverUI.display("Server listening for connections on port " + getPort());
+    System.out.println("Server listening for connections on port " + getPort());
   }
   
   /**
@@ -95,7 +97,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStopped()
   {
-    serverUI.display("Server has stopped listening for connections.");
+    System.out.println("Server has stopped listening for connections.");
   }
   
   //Class methods ***************************************************
@@ -138,7 +140,7 @@ public class EchoServer extends AbstractServer
    * @param client the connection connected to the client.
    */
   protected void clientConnected(ConnectionToClient client) {
-	  serverUI.display("A client is connecting.");
+	  System.out.println("A client is connecting.");
   }
 
   /**
@@ -149,7 +151,8 @@ public class EchoServer extends AbstractServer
    * @param client the connection with the client.
    */
   synchronized protected void clientDisconnected(ConnectionToClient client) {
-	  serverUI.display(client.getInfo("loginID") + " has disconnected.");
+	  System.out.println(client.getInfo("loginID") + " has disconnected.");
+	  this.sendToAllClients(client.getInfo("loginID") + " has disconnected.");
   }
   
   /**
@@ -162,7 +165,8 @@ public class EchoServer extends AbstractServer
    * @param Throwable the exception thrown.
    */
   synchronized protected void clientException(ConnectionToClient client, Throwable exception) {
-	  serverUI.display(client.getInfo("loginID") + " has disconnected.");
+	  System.out.println(client.getInfo("loginID") + " has disconnected.");
+	  this.sendToAllClients(client.getInfo("loginID") + " has disconnected.");
   }
   
 
@@ -173,7 +177,7 @@ public class EchoServer extends AbstractServer
    * listening, serverStopped() will also be called.
    */
   protected void serverClosed() {
-	  serverUI.display("Server closed.");
+	  System.out.println("Server closed.");
   }
 }
 //End of EchoServer class

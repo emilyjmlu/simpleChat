@@ -43,7 +43,7 @@ public class ServerConsole implements ChatIF {
     } 
     	catch(IOException exception) 
     {
-      display("ERROR - Could not listen for clients!");
+      System.out.println("ERROR - Could not listen for clients!");
       System.exit(1);
     }
     
@@ -76,12 +76,14 @@ public class ServerConsole implements ChatIF {
             	switch(command) {
             	
     	        	case "quit":
-    	        		display("Closing program.");
+    	        		System.out.println("Closing program.");
     					server.close(); // kills server
     					break;
     				
     	        	case "stop":
     	        		server.stopListening(); // stop listening for new clients
+    	        		server.sendToAllClients("WARNING - The server has stopped listening for connections\r\n" + 
+    	        				"SERVER SHUTTING DOWN! DISCONNECTING!\r\n");
     	        		break;
     	        		
     	        	case "close":
@@ -89,26 +91,28 @@ public class ServerConsole implements ChatIF {
     	        		Thread[] clientThreadList = server.getClientConnections(); // array of all clients
     	        		for (int i = 0; i < clientThreadList.length; i++) {
     	        			try {
+    	        				server.sendToAllClients("Abnormal termination of connection.");
     	        				((ConnectionToClient)clientThreadList[i]).close(); // Close the client sockets of the already connected clients
+    	        				
     	        			}
     	        			catch(Exception e) {}
     	        		}
     	        		break;
     	        		
     	        	case "getport":
-    	        		display(Integer.toString(server.getPort()));
+    	        		System.out.println(Integer.toString(server.getPort()));
     	        		break;
     	        		
     	        	case "start":
     	        		if (!server.isListening()) {
     	        			server.listen();
     	        		} else if (server.isListening()) {
-    	        			display("Error: server is already listening for connections.");
+    	        			System.out.println("Error: server is already listening for connections.");
     	        		}
     	        		break;
     					
     	        	default:
-    	        		display("Not a command."); // if used # but not a valid command
+    	        		System.out.println("Not a command."); // if used # but not a valid command
     	        		break;
    
         	}
@@ -123,14 +127,14 @@ public class ServerConsole implements ChatIF {
         		case "#setport":
         			if (!server.isListening()) {
 	        			server.setPort(Integer.parseInt(para));
-	        			display("new port: " + server.getPort());
+	        			System.out.println("port: set to: " + server.getPort());
 	        		} else if (server.isListening()) {
-	        			display("Error: server is already running.");
+	        			System.out.println("Error: server is already running.");
 	        		}
 	        		break;
 	        		
         		default: 
-        			display("Not a valid command.");
+        			System.out.println("Not a valid command.");
 	        		break;
         			
         	}
@@ -175,13 +179,15 @@ public class ServerConsole implements ChatIF {
 	  
     int port = DEFAULT_PORT; // initialize port number to default
     
+    
+    
     try
     {
     	port = Integer.parseInt(args[0]); //get port from command line
     }	
     catch(Throwable t)
     {
-    	System.out.println("Wrong input. Using default port.");
+    	System.out.println("Didn't specify port or wrong input. Using default port.");
     }
     
     ServerConsole serverChat = new ServerConsole(port);

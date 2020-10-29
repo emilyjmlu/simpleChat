@@ -103,7 +103,7 @@ public class ChatClient extends AbstractClient
 	 * attempting to reconnect.
 	 */
 	protected void connectionClosed() {
-		clientUI.display("Logging off.");
+		clientUI.display("Connection closed.");
 	}
 
 	/**

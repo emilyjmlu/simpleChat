@@ -61,9 +61,7 @@ public class ClientConsole implements ChatIF
     } 
     catch(IOException exception) 
     {
-      System.out.println("Error: Can't setup connection!"
-                + " Terminating client.");
-      System.exit(1);
+    	System.out.println("Cannot open connection. Awaiting command.");
     }
     
     // Create scanner object to read from console
@@ -96,7 +94,7 @@ public class ClientConsole implements ChatIF
             	switch(command) {
             	
     	        	case "quit":
-    	        		display("Closing program.");
+    	        		System.out.println("Closing program.");
     					client.quit(); // close client
     					break;
     				
@@ -105,18 +103,18 @@ public class ClientConsole implements ChatIF
     	        		break;
     	        		
     	        	case "gethost":
-    	        		display(client.getHost());
+    	        		System.out.println(client.getHost());
     	        		break;
     	        		
     	        	case "getport":
-    	        		display(Integer.toString(client.getPort()));
+    	        		System.out.println(Integer.toString(client.getPort()));
     	        		break;
     	        		
     	        	case "login":
-    	        		display("Error: missing login ID.");
+    	        		System.out.println("Error: missing login ID.");
     					
     	        	default:
-    	        		display("Not a valid command.");
+    	        		System.out.println("Not a valid command.");
     	        		break;
            
         	}
@@ -131,7 +129,7 @@ public class ClientConsole implements ChatIF
         	
         		case "#sethost":
         			if (client.isConnected()) { // error message if client is already connected
-        				display("Error: Already connected to server.");
+        				System.out.println("Error: Already connected to server.");
         			} else {
         				client.setHost(para);
         			}
@@ -139,7 +137,7 @@ public class ClientConsole implements ChatIF
         			
         		case "#setport":
         			if (client.isConnected()) { // error message if client is already connected
-        				display("Error: Already connected to server.");
+        				System.out.println("Error: Already connected to server.");
         			} else {
         				client.setPort(Integer.parseInt(para));
         			}
@@ -147,7 +145,7 @@ public class ClientConsole implements ChatIF
         			
 	        	case "#login":
 	        		if (client.isConnected()) {
-	        			display("Error: Already connected to server."); 
+	        			System.out.println("Error: Already connected to server."); 
 	        		} else {
 	        			client.setLoginID(message.split(" ")[1]);
 	        		}
@@ -157,7 +155,7 @@ public class ClientConsole implements ChatIF
 	        		break;
 	        		
         		default: 
-        			display("Not a valid command."); // if used # but not a valid command
+        			System.out.println("Not a valid command."); // if used # but not a valid command
 	        		break;
         			
         	}
@@ -208,7 +206,7 @@ public class ClientConsole implements ChatIF
     	loginID = (String)args[0]; 
     }
     catch(Throwable t) {
-    	System.out.println("Error: No login ID. Terminating client.");
+    	System.out.println("ERROR - No login ID specified.  Connection aborted.");
 	  	  System.exit(1);
     }
     
@@ -218,7 +216,7 @@ public class ClientConsole implements ChatIF
     }
     catch(Throwable t)
     {
-    	System.out.println("Wrong input. Using default port.");
+    	System.out.println("Didn't specify port or wrong input. Using default port.");
     }
     
     ClientConsole chat= new ClientConsole(loginID, host, port);
